@@ -1,0 +1,50 @@
+/* home.css - trang home đơn giản, cùng tông màu xanh nhẹ */
+
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0f2ff; /* xanh nhạt */
+  padding: 20px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+.home-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  color: #1e3a8a;
+}
+
+.home-card h1 {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.home-card p {
+  font-size: 16px;
+  color: #1e40af;
+  margin-bottom: 20px;
+}
+
+.home-card button {
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.home-card button:hover {
+  background-color: #2563eb;
+}

@@ -1,28 +1,34 @@
-import { useEffect } from "react";
-import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/login";
+import AdminDashboard from "./pages/AdminDashboard";
+import HomePage from "./pages/HomePage";
+import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
-function App() {
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "novels"));
-        querySnapshot.forEach((doc) => {
-          console.log(doc.id, " => ", doc.data());
-        });
-      } catch (error) {
-        console.error("Lỗi kết nối Firebase:", error);
-      }
-    };
-    fetchData();
-  }, []);
-
+export default function App() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Hello Firebase 👋</h1>
-      <p>Xem console để kiểm tra dữ liệu Firestore.</p>
-    </div>
+    <Routes>
+      {/* Redirect / sang /home thay vì /login */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+
+      {/* Login page vẫn có thể truy cập */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Admin dashboard protected */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole="admin/user">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Home page không cần login */}
+      <Route path="/home" element={<HomePage />} />
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
-
-export default App;

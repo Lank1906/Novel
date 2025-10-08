@@ -1,0 +1,107 @@
+/* login.css - CSS riêng cho login page, màu xanh nhạt, hiện đại */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e0f2ff; /* xanh nhạt */
+  padding: 20px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  max-width: 360px;
+  width: 100%;
+  color: #1e3a8a; /* chữ xanh đậm */
+}
+
+.login-card h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #1e3a8a;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #94a3b8;
+  outline: none;
+  background-color: #f0f9ff;
+  color: #1e3a8a;
+  transition: border 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #3b82f6;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background-color: #2563eb;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: rgba(248, 113, 113, 0.2);
+  color: #dc2626;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.toggle-section {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #1e3a8a;
+}
+
+.toggle-section button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+.toggle-section button:hover {
+  text-decoration: underline;
+}
