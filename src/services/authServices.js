@@ -22,7 +22,11 @@ export async function signUp(email, password) {
 export async function signIn(email, password) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
   const userDoc = await getDoc(doc(db, "users", user.uid));
-  return { ...user, ...userDoc.data() };
+  return {
+    uid: user.uid,
+    email: user.email,
+    role: userDoc.data()?.role || "user",
+  };
 }
 
 // Đăng xuất
@@ -32,5 +36,16 @@ export async function logout() {
 
 // Theo dõi trạng thái đăng nhập
 export function subscribeAuth(callback) {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, async (u) => {
+    if (!u) {
+      callback(null);
+      return;
+    }
+    const userDoc = await getDoc(doc(db, "users", u.uid));
+    callback({
+      uid: u.uid,
+      email: u.email,
+      role: userDoc.data()?.role || "user",
+    });
+  });
 }

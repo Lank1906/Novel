@@ -18,7 +18,6 @@ export default function ProtectedRoute({ children, requiredRole }) {
     return <div className="text-center text-white p-10">Đang tải...</div>;
 
   if (!user) return <Navigate to="/login" replace />;
-  console.log(user);
   // Nếu có role yêu cầu và không khớp → chặn truy cập
   if (requiredRole && user.role != requiredRole)
     return <Navigate to="/login" replace />;

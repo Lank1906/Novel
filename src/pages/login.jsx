@@ -30,7 +30,6 @@ export default function LoginPage() {
       }
 
       // redirect theo role
-      console.log(user);
       if (user.role === "admin/user") {
         navigate("/admin"); // admin dashboard
       } else {
