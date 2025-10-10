@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn, signUp } from "../services/authServices";
+import { signIn, signUp, signInWithGoogle } from "../services/authServices";
 import "../assets/login.css";
 
 export default function LoginPage() {
@@ -20,21 +20,31 @@ export default function LoginPage() {
     try {
       let user;
       if (isLogin) {
-        // login
         user = await signIn(email, password);
         alert("🎉 Đăng nhập thành công!");
       } else {
-        // signup
         user = await signUp(email, password);
         alert("✅ Đăng ký thành công!");
       }
 
       // redirect theo role
-      if (user.role === "admin/user") {
-        navigate("/admin"); // admin dashboard
-      } else {
-        navigate("/home"); // trang home user
-      }
+      if (user.role === "admin/user") navigate("/admin");
+      else navigate("/home");
+    } catch (err) {
+      setError(err.message || "Có lỗi xảy ra");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const user = await signInWithGoogle();
+      alert("🎉 Đăng nhập Google thành công!");
+      if (user.role === "admin/user") navigate("/admin");
+      else navigate("/home");
     } catch (err) {
       setError(err.message || "Có lỗi xảy ra");
     } finally {
@@ -76,6 +86,15 @@ export default function LoginPage() {
             {loading ? "Đang xử lý..." : isLogin ? "Đăng nhập" : "Đăng ký"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="google-button"
+          disabled={loading}
+        >
+          {loading ? "Đang xử lý..." : "Đăng nhập với Google"}
+        </button>
 
         <div className="toggle-section">
           {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}

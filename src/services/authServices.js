@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
@@ -27,6 +29,28 @@ export async function signIn(email, password) {
     email: user.email,
     role: userDoc.data()?.role || "user",
   };
+}
+
+const googleProvider = new GoogleAuthProvider();
+
+// Google Sign-In
+export async function signInWithGoogle() {
+  const result = await signInWithPopup(auth, googleProvider);
+  const user = result.user;
+
+  const userDocRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userDocRef);
+
+  if (!userDoc.exists()) {
+    await setDoc(userDocRef, {
+      email: user.email,
+      role: "user",
+      createdAt: new Date(),
+    });
+  }
+
+  const finalDoc = await getDoc(userDocRef);
+  return { uid: user.uid, email: user.email, role: finalDoc.data().role };
 }
 
 // Đăng xuất
