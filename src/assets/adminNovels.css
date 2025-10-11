@@ -1,0 +1,225 @@
+/* ====== Layout tổng ====== */
+.admin-page {
+  padding: 20px 40px;
+  background-color: #f7f8fa;
+  min-height: 100vh;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.admin-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 220px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* ====== Nút ====== */
+.btn {
+  background: #e0e0e0;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: #d4d4d4;
+}
+
+.btn.primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #005fcc;
+}
+
+.btn.danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn.danger:hover {
+  background: #b02a37;
+}
+
+/* ====== Grid truyện ====== */
+.novel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.novel-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.novel-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cover {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  background-color: #f0f0f0;
+}
+
+.novel-body {
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.novel-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #222;
+}
+
+.novel-meta {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.novel-desc {
+  font-size: 13px;
+  color: #444;
+  flex-grow: 1;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.card-actions .btn {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* ====== Load more ====== */
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.no-more {
+  color: #777;
+  font-size: 14px;
+}
+
+/* ====== Modal form ====== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+
+.modal {
+  background: white;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.form label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form input,
+.form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.form textarea {
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* ====== Trạng thái trống ====== */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #666;
+  font-size: 15px;
+  padding: 40px 0;
+}
