@@ -3,6 +3,7 @@ import Login from "./pages/login";
 import AdminDashboard from "./pages/AdminDashboard";
 import HomePage from "./pages/HomePage";
 import AdminNovels from "./pages/AdminNovels";
+import AdminChapters from "./pages/AdminChapters";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -30,6 +31,15 @@ export default function App() {
         element={
           <ProtectedRoute requiredRole="admin/user">
             <AdminNovels />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/novels/:novelId/chapters"
+        element={
+          <ProtectedRoute requiredRole="admin/user">
+            <AdminChapters />
           </ProtectedRoute>
         }
       />
