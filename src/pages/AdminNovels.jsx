@@ -1,49 +1,33 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/adminNovels.css";
 import useDebounce from "../hooks/useDebounce";
-import {
-  getNovels,
-  addNovel as svcAddNovel,
-  updateNovel as svcUpdateNovel,
-  deleteNovel as svcDeleteNovel,
-} from "../services/novelService";
 import { db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import AdminLayout from "../layouts/AdminLayout";
-/**
- * AdminNovels
- * - Search + Debounce
- * - Pagination (Load more)
- * - Caching via sessionStorage
- * - Prefetch next page when "Load more" shown
- * - Permission check (user doc in 'users' with role === 'admin' or isAdmin true)
- *
- * Usage: Route protected => <AdminNovels />
- */
-
-const PAGE_SIZE = 12;
-const CACHE_PREFIX = "admin_novels_cache_v1";
+import { useNovels } from "../contexts/NovelContext";
 
 export default function AdminNovels() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(null); // null = checking, false = no, true = yes
+  const [isAdmin, setIsAdmin] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
-  // Data
-  const [novels, setNovels] = useState([]);
-  const [lastVisible, setLastVisible] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const {
+    novels,
+    isLoading,
+    hasMore,
+    fetchNovels,
+    addNovel,
+    updateNovel,
+    deleteNovel,
+  } = useNovels();
 
-  // Search
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
 
-  // UI state
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null); // null = add, {id,...} = edit
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     title: "",
     author: "",
@@ -53,146 +37,46 @@ export default function AdminNovels() {
     type: "",
   });
 
-  const lastFetchRef = useRef(null); // cache last query to avoid duplicate fetches
-
-  // Auth + permission check
+  // Check quyền admin
   useEffect(() => {
-    setLoadingAuth(true);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        // not logged in -> redirect to home or login
-        setIsAdmin(false);
-        setLoadingAuth(false);
         navigate("/login");
         return;
       }
       try {
-        // read user doc from 'users'
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
         const data = userSnap.exists() ? userSnap.data() : null;
         const adminFlag = data?.role === "admin/user";
         if (!adminFlag) {
-          setIsAdmin(false);
-          setLoadingAuth(false);
-          navigate("/"); // not admin -> go to home
+          navigate("/");
           return;
         }
         setIsAdmin(true);
-        setLoadingAuth(false);
-      } catch (err) {
-        console.error("Error checking admin:", err);
-        setIsAdmin(false);
-        setLoadingAuth(false);
+      } catch {
         navigate("/");
+      } finally {
+        setLoadingAuth(false);
       }
     });
     return () => unsubscribe();
   }, [navigate]);
 
-  // Build cache key
-  const cacheKey = (searchTerm, lastId) =>
-    `${CACHE_PREFIX}_${searchTerm || "all"}_${lastId || "first"}`;
-
-  // Fetch novels (refresh===true -> reset list)
-  const fetchNovels = useCallback(
-    async (refresh = false) => {
-      // Avoid fetching while auth check ongoing
-      if (loadingAuth) return;
-      setLoading(true);
-
-      try {
-        const wantSearch = debouncedSearch?.trim() || "";
-        const lastDocForRequest = refresh ? null : lastVisible;
-
-        // prevent duplicate identical requests
-        const lastKey = cacheKey(wantSearch, lastDocForRequest?.id);
-        if (!refresh && lastFetchRef.current === lastKey) {
-          setLoading(false);
-          return;
-        }
-        lastFetchRef.current = lastKey;
-
-        // Try sessionStorage cache first
-        const cached = sessionStorage.getItem(
-          cacheKey(wantSearch, lastDocForRequest?.id)
-        );
-        if (cached && refresh === false) {
-          const parsed = JSON.parse(cached);
-          setNovels((prev) =>
-            refresh ? parsed.novels : [...prev, ...parsed.novels]
-          );
-          setLastVisible(parsed.lastVisible || null);
-          setHasMore(Boolean(parsed.lastVisible));
-          setLoading(false);
-          // Prefetch next page asynchronously
-          prefetchNext(parsed.lastVisible, wantSearch);
-          return;
-        }
-
-        // Call service
-        const res = await getNovels({
-          pageSize: PAGE_SIZE,
-          lastDoc: lastDocForRequest,
-          searchTerm: wantSearch,
-          forceRefresh: refresh,
-        });
-
-        // update state: if refresh -> replace; else append
-        setNovels((prev) => (refresh ? res.novels : [...prev, ...res.novels]));
-        setLastVisible(res.lastVisible || null);
-        setHasMore(Boolean(res.lastVisible));
-
-        // Cache result
-        sessionStorage.setItem(
-          cacheKey(wantSearch, lastDocForRequest?.id),
-          JSON.stringify(res)
-        );
-
-        // Prefetch next page
-        prefetchNext(res.lastVisible, wantSearch);
-      } catch (err) {
-        console.error("Fetch novels error:", err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [debouncedSearch, lastVisible, loadingAuth]
-  );
-
-  // Prefetch next page (non-blocking)
-  const prefetchNext = async (lastDocForPrefetch, searchTerm) => {
-    if (!lastDocForPrefetch) return;
-    const nextKey = cacheKey(searchTerm, lastDocForPrefetch.id || "next");
-    // if already cached, skip
-    if (sessionStorage.getItem(nextKey)) return;
-    try {
-      const res = await getNovels({
-        pageSize: PAGE_SIZE,
-        lastDoc: lastDocForPrefetch,
-        searchTerm,
-        forceRefresh: false,
-      });
-      sessionStorage.setItem(nextKey, JSON.stringify(res));
-    } catch (err) {
-      // ignore prefetch errors
-    }
-  };
-
-  // Initial fetch & on search change
+  // Fetch novels chỉ khi xác thực xong & là admin
   useEffect(() => {
-    // refresh whenever debounced search changes
-    setLastVisible(null);
-    fetchNovels(true);
-  }, [debouncedSearch]); // eslint-disable-line
+    if (loadingAuth) return; // ⏳ chờ kiểm tra quyền xong
+    if (!isAdmin) return; // ❌ không phải admin thì không fetch
 
-  // Load more handler
+    // ✅ admin thật thì mới fetch
+    fetchNovels(debouncedSearch, debouncedSearch.trim() !== "");
+  }, [loadingAuth, isAdmin, debouncedSearch]); // eslint-disable-line
+
   const loadMore = () => {
-    if (!hasMore || loading) return;
-    fetchNovels(false);
+    if (!hasMore || isLoading) return;
+    fetchNovels(debouncedSearch, false);
   };
 
-  // Open add form
   const openAdd = () => {
     setEditing(null);
     setForm({
@@ -206,7 +90,6 @@ export default function AdminNovels() {
     setShowForm(true);
   };
 
-  // Open edit form
   const openEdit = (novel) => {
     setEditing(novel);
     setForm({
@@ -220,7 +103,6 @@ export default function AdminNovels() {
     setShowForm(true);
   };
 
-  // Submit add/edit
   const submitForm = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return alert("Nhập tiêu đề");
@@ -237,60 +119,36 @@ export default function AdminNovels() {
       titleLower: form.title.trim().toLowerCase(),
       createdAt: new Date(),
     };
-    setLoading(true);
     try {
       if (editing) {
-        await svcUpdateNovel(editing.id, payload);
-        // update local state
-        setNovels((prev) =>
-          prev.map((n) => (n.id === editing.id ? { ...n, ...payload } : n))
-        );
+        await updateNovel(editing.id, payload);
       } else {
-        const newId = await svcAddNovel(payload);
-        const newItem = { id: newId, ...payload };
-        setNovels((prev) => [newItem, ...prev]);
+        await addNovel(payload);
       }
-      // clear caches that might be stale
-      Object.keys(sessionStorage)
-        .filter((k) => k.startsWith(CACHE_PREFIX))
-        .forEach((k) => sessionStorage.removeItem(k));
       setShowForm(false);
     } catch (err) {
-      console.error("Save novel error:", err);
-      alert("Lỗi lưu truyện. Kiểm tra console.");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("Lỗi khi lưu truyện!");
     }
   };
 
-  // Delete
   const handleDelete = async (novel) => {
-    if (!confirm(`Bạn có chắc muốn xóa truyện "${novel.title}" ?`)) return;
-    setLoading(true);
+    if (!confirm(`Xóa truyện "${novel.title}"?`)) return;
     try {
-      await svcDeleteNovel(novel.id);
-      setNovels((prev) => prev.filter((n) => n.id !== novel.id));
-      // clear caches
-      Object.keys(sessionStorage)
-        .filter((k) => k.startsWith(CACHE_PREFIX))
-        .forEach((k) => sessionStorage.removeItem(k));
+      await deleteNovel(novel.id);
     } catch (err) {
-      console.error("Delete novel error:", err);
-      alert("Xóa thất bại.");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("Xóa thất bại!");
     }
   };
 
-  if (loadingAuth || isAdmin === null) {
+  if (loadingAuth || isAdmin === null)
     return <div className="admin-page">Đang kiểm tra quyền...</div>;
-  }
 
-  if (!isAdmin) {
+  if (!isAdmin)
     return (
       <div className="admin-page">Bạn không có quyền truy cập trang này.</div>
     );
-  }
 
   return (
     <AdminLayout>
@@ -302,9 +160,7 @@ export default function AdminNovels() {
               className="search-input"
               placeholder="Tìm theo tiêu đề..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
             />
             <button className="btn primary" onClick={openAdd}>
               Thêm truyện
@@ -314,7 +170,7 @@ export default function AdminNovels() {
 
         <main className="admin-main">
           <div className="novel-grid">
-            {novels.length === 0 && !loading && (
+            {novels.length === 0 && !isLoading && (
               <div className="empty">Không có truyện nào</div>
             )}
             {novels.map((n) => (
@@ -357,8 +213,8 @@ export default function AdminNovels() {
 
           <div className="load-more">
             {hasMore ? (
-              <button className="btn" onClick={loadMore} disabled={loading}>
-                {loading ? "Đang tải..." : "Tải thêm"}
+              <button className="btn" onClick={loadMore} disabled={isLoading}>
+                {isLoading ? "Đang tải..." : "Tải thêm"}
               </button>
             ) : (
               <div className="no-more">Hết truyện</div>
@@ -366,7 +222,6 @@ export default function AdminNovels() {
           </div>
         </main>
 
-        {/* Form modal */}
         {showForm && (
           <div className="modal-backdrop" onClick={() => setShowForm(false)}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -436,9 +291,9 @@ export default function AdminNovels() {
                   <button
                     type="submit"
                     className="btn primary"
-                    disabled={loading}
+                    disabled={isLoading}
                   >
-                    {loading ? "Đang lưu..." : editing ? "Lưu" : "Thêm"}
+                    {isLoading ? "Đang lưu..." : editing ? "Lưu" : "Thêm"}
                   </button>
                 </div>
               </form>

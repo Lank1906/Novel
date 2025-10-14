@@ -1,137 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  getNovelById,
-  getChaptersByNovelId,
-  addChapter,
-  updateChapter,
-  deleteChapter,
-} from "../services/chapterServices";
+import { useChapter } from "../contexts/ChapterContext";
 import "../assets/adminChapters.css";
 
 export default function AdminChapters() {
   const { novelId } = useParams();
-  const [novel, setNovel] = useState(null);
-  const [chapters, setChapters] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const {
+    novel,
+    chapters,
+    selected,
+    setSelected,
+    fetchNovelAndChapters,
+    addNewChapter,
+    updateExistingChapter,
+    deleteExistingChapter,
+    loading,
+  } = useChapter();
 
-  const [newChapter, setNewChapter] = useState({
-    title: "",
-    content: "",
-  });
-
+  const [newChapter, setNewChapter] = useState({ title: "", content: "" });
   const [editMode, setEditMode] = useState(false);
   const [editChapter, setEditChapter] = useState({
     id: "",
     title: "",
     content: "",
-    images: [],
     imagesText: "",
   });
 
-  // Fetch dữ liệu
   useEffect(() => {
-    const fetchData = async () => {
-      const novelData = await getNovelById(novelId);
-      setNovel(novelData);
-      const chapterData = await getChaptersByNovelId(novelId);
-      setChapters(chapterData);
-    };
-    fetchData();
+    fetchNovelAndChapters(novelId);
   }, [novelId]);
 
-  // ➕ Thêm chapter
+  if (loading || !novel) return <p className="loading">Đang tải dữ liệu...</p>;
+
   const handleAdd = async () => {
-    if (!newChapter.title.trim()) return alert("Nhập tiêu đề chapter!");
-    let data = {};
-
-    if (novel.type === "comic") {
-      const list = newChapter.content
-        .split("\n")
-        .map((x) => x.trim())
-        .filter((x) => x);
-      if (list.length === 0) return alert("Nhập ít nhất 1 link ảnh!");
-      data = { title: newChapter.title, images: list, content: "" };
-    } else {
-      if (!newChapter.content.trim()) return alert("Nhập nội dung!");
-      data = {
-        title: newChapter.title,
-        content: newChapter.content,
-        images: [],
-      };
+    try {
+      await addNewChapter(novelId, novel.type, newChapter);
+      setNewChapter({ title: "", content: "" });
+    } catch (err) {
+      alert(err.message);
     }
-
-    await addChapter(novelId, data);
-    const updated = await getChaptersByNovelId(novelId);
-    setChapters(updated);
-    setNewChapter({ title: "", content: "" });
   };
 
-  // ✏️ Mở form sửa
   const handleEdit = (chapter) => {
     setEditMode(true);
     setEditChapter({
       id: chapter.id,
       title: chapter.title,
       content: chapter.content || "",
-      images: chapter.images || [],
       imagesText: (chapter.images || []).join("\n"),
     });
   };
 
-  // 💾 Lưu thay đổi
   const handleUpdate = async () => {
-    if (!editChapter.title.trim()) return alert("Nhập tiêu đề!");
-
-    let updatedData = { title: editChapter.title };
-
-    if (novel.type === "comic") {
-      const list = editChapter.imagesText
-        .split("\n")
-        .map((x) => x.trim())
-        .filter((x) => x);
-      updatedData.images = list;
-      updatedData.content = "";
-    } else {
-      updatedData.content = editChapter.content;
-      updatedData.images = [];
+    try {
+      await updateExistingChapter(novelId, novel.type, editChapter);
+      setEditMode(false);
+      setEditChapter({ id: "", title: "", content: "", imagesText: "" });
+    } catch (err) {
+      alert(err.message);
     }
-
-    await updateChapter(novelId, editChapter.id, updatedData);
-    const updated = await getChaptersByNovelId(novelId);
-    setChapters(updated);
-    setEditMode(false);
-    setEditChapter({
-      id: "",
-      title: "",
-      content: "",
-      images: [],
-      imagesText: "",
-    });
   };
 
-  // 🗑️ Xóa
   const handleDelete = async (id) => {
     if (window.confirm("Xóa chapter này?")) {
-      await deleteChapter(novelId, id);
-      const updated = await getChaptersByNovelId(novelId);
-      setChapters(updated);
-      if (selected?.id === id) setSelected(null);
+      await deleteExistingChapter(novelId, id);
     }
   };
 
-  // Format Firestore timestamp
-  const formatDate = (ts) => {
-    if (!ts) return "Chưa có";
-    if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleString("vi-VN");
-    return ts;
-  };
-
-  if (!novel) return <p className="loading">Đang tải dữ liệu...</p>;
+  const formatDate = (ts) =>
+    ts?.seconds ? new Date(ts.seconds * 1000).toLocaleString("vi-VN") : "—";
 
   return (
     <div className="chapter-container">
-      {/* Cột trái: Thông tin truyện */}
       <div className="novel-info">
         {novel.cover && (
           <img src={novel.cover} alt={novel.title} className="novel-cover" />
@@ -150,7 +90,6 @@ export default function AdminChapters() {
         {novel.description && <p className="novel-desc">{novel.description}</p>}
       </div>
 
-      {/* Cột phải */}
       <div className="chapter-panel">
         <div className="chapter-list">
           <h3>Danh sách Chapter</h3>
@@ -198,7 +137,7 @@ export default function AdminChapters() {
             <button onClick={handleAdd}>Thêm</button>
           </div>
 
-          {/* Sửa */}
+          {/* Form sửa */}
           {editMode && (
             <div className="edit-section">
               <h4>Chỉnh sửa Chapter</h4>
@@ -210,11 +149,6 @@ export default function AdminChapters() {
                 }
               />
               <textarea
-                placeholder={
-                  novel.type === "comic"
-                    ? "Mỗi link ảnh 1 dòng..."
-                    : "Nội dung chương..."
-                }
                 value={
                   novel.type === "comic"
                     ? editChapter.imagesText

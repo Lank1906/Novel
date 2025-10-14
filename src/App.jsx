@@ -6,49 +6,55 @@ import AdminNovels from "./pages/AdminNovels";
 import AdminChapters from "./pages/AdminChapters";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { NovelProvider } from "./contexts/NovelContext";
+import { ChapterProvider } from "./contexts/ChapterContext";
 
 export default function App() {
   return (
-    <Routes>
-      {/* Redirect / sang /home thay vì /login */}
-      <Route path="/" element={<Navigate to="/home" replace />} />
+    <NovelProvider>
+      <ChapterProvider>
+        <Routes>
+          {/* Redirect / sang /home thay vì /login */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-      {/* Login page vẫn có thể truy cập */}
-      <Route path="/login" element={<Login />} />
+          {/* Login page vẫn có thể truy cập */}
+          <Route path="/login" element={<Login />} />
 
-      {/* Admin dashboard protected */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute requiredRole="admin/user">
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
-      {/* ✅ Trang quản lý truyện (chỉ admin) */}
-      <Route
-        path="/admin/novels"
-        element={
-          <ProtectedRoute requiredRole="admin/user">
-            <AdminNovels />
-          </ProtectedRoute>
-        }
-      />
+          {/* Admin dashboard protected */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin/user">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* ✅ Trang quản lý truyện (chỉ admin) */}
+          <Route
+            path="/admin/novels"
+            element={
+              <ProtectedRoute requiredRole="admin/user">
+                <AdminNovels />
+              </ProtectedRoute>
+            }
+          />
 
-      <Route
-        path="/admin/novels/:novelId/chapters"
-        element={
-          <ProtectedRoute requiredRole="admin/user">
-            <AdminChapters />
-          </ProtectedRoute>
-        }
-      />
+          <Route
+            path="/admin/novels/:novelId/chapters"
+            element={
+              <ProtectedRoute requiredRole="admin/user">
+                <AdminChapters />
+              </ProtectedRoute>
+            }
+          />
 
-      {/* Home page không cần login */}
-      <Route path="/home" element={<HomePage />} />
+          {/* Home page không cần login */}
+          <Route path="/home" element={<HomePage />} />
 
-      {/* 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ChapterProvider>
+    </NovelProvider>
   );
 }
