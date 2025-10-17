@@ -1,50 +1,85 @@
-/* home.css - trang home đơn giản, cùng tông màu xanh nhẹ */
-
 .home-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #e0f2ff; /* xanh nhạt */
-  padding: 20px;
-  font-family: "Segoe UI", Roboto, sans-serif;
-}
-
-.home-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  max-width: 500px;
   width: 100%;
-  text-align: center;
-  color: #1e3a8a;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: sans-serif;
+  padding-bottom: 40px;
 }
 
-.home-card h1 {
-  font-size: 28px;
-  margin-bottom: 16px;
-}
-
-.home-card p {
-  font-size: 16px;
-  color: #1e40af;
-  margin-bottom: 20px;
-}
-
-.home-card button {
-  padding: 10px 20px;
-  background-color: #3b82f6;
-  border: none;
-  border-radius: 8px;
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #333;
   color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
+}
+.navbar-search input {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 4px;
+}
+.navbar-search button {
+  margin-left: 8px;
+  padding: 6px 10px;
 }
 
-.home-card button:hover {
-  background-color: #2563eb;
+/* Genre tabs */
+.genre-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.genre-btn {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+.genre-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Sections */
+section {
+  margin-bottom: 24px;
+}
+section h2 {
+  margin-bottom: 12px;
+  font-size: 1.4em;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Novel grid */
+.novel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.novel-card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  text-align: center;
+  background: white;
+}
+.novel-cover {
+  background: #f4f4f4;
+  height: 200px;
+}
+.novel-info {
+  padding: 8px;
+}
+
+/* Ads */
+.ads-banner {
+  text-align: center;
+  padding: 20px;
+  background: #f1f1f1;
+  border: 1px dashed #ccc;
+  margin-top: 30px;
 }
