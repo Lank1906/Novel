@@ -1,22 +1,36 @@
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import NavbarSearch from "../components/home/NavbarSearch";
+import GenreTabs from "../components/home/GenreTabs";
+import HighlightSection from "../components/home/HighlightSection";
+import LatestChaptersSection from "../components/home/LatestChaptersSection";
+import TopDailyChaptersSection from "../components/home/TopDailyChaptersSection";
+import NovelListSection from "../components/home/NovelListSection";
+import AdsBanner from "../components/home/AdsBanner";
 import "../assets/home.css";
 
-export default function HomePage() {
-  const navigate = useNavigate();
+const Home = () => {
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState("Tất cả");
 
-  const handleLogout = () => {
-    // xóa thông tin user (tùy bạn lưu token hay context)
-    // ví dụ: localStorage.removeItem("user");
-    navigate("/login");
-  };
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="home-container">
-      <div className="home-card">
-        <h1>Chào mừng đến trang Home!</h1>
-        <p>Bạn đã đăng nhập thành công. Đây là trang Home cho user thường.</p>
-        <button onClick={handleLogout}>Đăng xuất</button>
+      <NavbarSearch onSearch={setSearch} />
+      <GenreTabs selected={genre} onSelect={setGenre} />
+
+      <div className="home-content">
+        <HighlightSection />
+        <LatestChaptersSection />
+        <TopDailyChaptersSection />
+        <NovelListSection search={search} genre={genre} />
       </div>
+
+      <AdsBanner position="bottom" />
     </div>
   );
-}
+};
+
+export default Home;
